@@ -42,32 +42,6 @@ export async function signUp(params: SignUpParams) {
     }
 }
 
-// export async function signIn(email: string, password: string) {
-//     try {
-//         const userRecord = await auth.getUserByEmail(email);
-
-//         if (!userRecord) {
-//             return {
-//                 success: false,
-//                 message: 'User does not exist. Create an account instead.'
-//             };
-//         }
-
-//         return {
-//             success: true,
-//             message: 'Signed in successfully.'
-//         };
-
-//     } catch (e: any) {
-//         console.log(e);
-
-//         return {
-//             success: false,
-//             message: 'Failed to log into the account.'
-//         };
-//     }
-// }
-
 export async function signIn(params: SignInParams) {
     const { email, idToken } = params;
   
@@ -134,4 +108,36 @@ export async function isAuthenticated() {
     const user = await getCurrentUser();
 
     return !!user; // Makes the existence of the user a boolean
+}
+
+export async function getInterviewsByUserId(userId: string): Promise<Interview[] | null > {
+    const interviews = await db
+    .collection('interviews')
+    .where('userId', '==', userId)
+    .orderBy('createdAt', 'desc')
+    .get();
+
+    return interviews.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    })) as Interview[];
+}
+
+
+export async function getLatestInterviews(params: GetLatestInterviewsParams): Promise<Interview[] | null > {
+    
+    const { userId, limit = 20} = params;
+    
+    const interviews = await db
+    .collection('interviews')
+    .orderBy('createdAt', 'desc')
+    .where('userId', '==', true)
+    .where('userId', '!=', userId)
+    .limit(limit)
+    .get();
+
+    return interviews.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    })) as Interview[];
 }
